@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bandung Staycation Vote 🏡</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f14;
+    --surface: #161921;
+    --surface2: #1e2230;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #f0f2f7;
+    --muted: #8892a4;
+    --accent: #7c6af7;
+    --accent2: #a78bfa;
+    --accent-bg: rgba(124,106,247,0.12);
+    --green: #34d399;
+    --green-bg: rgba(52,211,153,0.12);
+    --amber: #fbbf24;
+    --coral: #f87171;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 60px 24px 40px;
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124,106,247,0.18) 0%, transparent 70%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-bg);
+    border: 1px solid rgba(124,106,247,0.3);
+    color: var(--accent2);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 99px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--accent2); }
+  .hero p {
+    color: var(--muted);
+    font-size: 16px;
+    max-width: 480px;
+    margin: 0 auto 28px;
+    line-height: 1.6;
+  }
+  .date-pill {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 99px;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--amber);
+  }
+
+  .voter-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px 0;
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .voter-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .voter-btn {
+    padding: 8px 18px;
+    border-radius: 99px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .voter-btn:hover { border-color: var(--accent); color: var(--text); }
+  .voter-btn.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent2); }
+  .voter-btn.voted { background: var(--green-bg); border-color: rgba(52,211,153,0.4); color: var(--green); }
+
+  .main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+    display: grid;
+    gap: 16px;
+  }
+
+  /* VILLA CARD — new image layout */
+  .villa-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .villa-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .villa-card.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .villa-card.winner { border-color: var(--amber); box-shadow: 0 0 0 1px var(--amber); }
+
+  /* image strip across top */
+  .card-img-wrap {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    background: var(--surface2);
+  }
+  .card-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  .villa-card:hover .card-img-wrap img { transform: scale(1.04); }
+
+  .img-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(13,15,20,0.72) 100%);
+  }
+  .img-badge-row {
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .img-id-badge {
+    background: rgba(13,15,20,0.75);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 8px;
+    letter-spacing: 0.04em;
+  }
+  .img-winner-badge {
+    display: none;
+    background: rgba(251,191,36,0.9);
+    color: #1a0f00;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 8px;
+    letter-spacing: 0.04em;
+  }
+  .villa-card.winner .img-winner-badge { display: inline-block; }
+
+  .img-bottom {
+    position: absolute;
+    bottom: 14px;
+    left: 14px;
+    right: 14px;
+  }
+  .img-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin-bottom: 3px;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+  }
+  .img-loc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* card body below image */
+  .card-body {
+    padding: 18px 20px 20px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0 20px;
+    align-items: start;
+  }
+  .card-left {}
+  .card-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    min-width: 90px;
+  }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 6px;
+    border: 1px solid;
+  }
+  .tag-pool { background: rgba(52,211,153,0.08); border-color: rgba(52,211,153,0.2); color: #34d399; }
+  .tag-fac  { background: rgba(124,106,247,0.08); border-color: rgba(124,106,247,0.2); color: #a78bfa; }
+  .tag-hot  { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.2); color: #f87171; }
+  .tag-fav  { background: rgba(251,191,36,0.1);   border-color: rgba(251,191,36,0.25);  color: #fbbf24; }
+
+  .meta-row {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: 14px 20px;
+    margin-bottom: 12px;
+    width: fit-content;
+  }
+  .meta-item { font-size: 12px; color: var(--muted); }
+  .meta-item strong { display: block; font-size: 14px; color: var(--text); font-weight: 600; margin-bottom: 1px; }
+  .stars { color: var(--amber); font-size: 12px; letter-spacing: 1px; }
+
+  .analysis {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    border-left: 2px solid var(--border2);
+    padding-left: 10px;
+    margin-bottom: 14px;
+    font-style: italic;
+  }
+
+  .card-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .vote-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 20px;
+    background: var(--accent-bg);
+    border: 1px solid rgba(124,106,247,0.35);
+    color: var(--accent2);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .vote-btn:hover:not(:disabled) { background: rgba(124,106,247,0.22); }
+  .vote-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .vote-btn.voted-state { background: var(--green-bg); border-color: rgba(52,211,153,0.35); color: var(--green); }
+
+  .airbnb-link {
+    font-size: 12px;
+    color: var(--muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.15s;
+  }
+  .airbnb-link:hover { color: var(--accent2); }
+
+  /* vote side */
+  .vote-count { font-size: 40px; font-weight: 700; color: var(--text); letter-spacing: -0.04em; line-height: 1; }
+  .vote-label { font-size: 11px; color: var(--muted); text-align: right; }
+  .vote-pct   { font-size: 13px; font-weight: 600; color: var(--accent2); }
+  .mini-bar { width: 80px; height: 4px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+  .mini-bar-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.4s ease; }
+  .villa-card.winner .mini-bar-fill { background: var(--amber); }
+
+  .who-voted { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+  .voter-chip {
+    font-size: 11px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 2px 8px;
+    border-radius: 6px;
+  }
+
+  /* results */
+  .results-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 24px;
+  }
+  .results-title { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .results-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .res-name { font-size: 13px; font-weight: 500; min-width: 80px; color: var(--muted); }
+  .res-bar-wrap { flex: 1; background: var(--surface2); border-radius: 99px; height: 6px; overflow: hidden; }
+  .res-bar { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.4s ease; }
+  .res-val { font-size: 13px; font-weight: 600; min-width: 28px; text-align: right; color: var(--text); }
+
+  /* status */
+  .status-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 13px;
+  }
+  .status-item { color: var(--muted); }
+  .status-item strong { color: var(--text); }
+  .live-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .reset-btn {
+    background: transparent;
+    border: 1px solid rgba(248,113,113,0.3);
+    color: #f87171;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .reset-btn:hover { background: rgba(248,113,113,0.1); }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 12px 22px;
+    border-radius: 99px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 999;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 600px) {
+    .meta-row { grid-template-columns: repeat(2, auto); }
+    .card-body { grid-template-columns: 1fr; }
+    .card-right { flex-direction: row; align-items: center; padding-top: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">✦ Voting Terbuka</div>
+  <h1>Pilih Villa <span>Bandung</span><br>Kita Bareng!</h1>
+  <p>Staycation untuk 8 orang pada 4–5 Juli 2026. Satu suara per orang — pilih favoritmu!</p>
+  <div class="date-pill">📅 4–5 Juli 2026 · 8 Tamu · 1 Malam</div>
+</div>
+
+<div class="voter-section">
+  <div class="section-label">Siapa kamu?</div>
+  <div class="voter-grid" id="voterGrid"></div>
+  <div style="font-size:12px; color: var(--muted); margin-top:6px;">Pilih namamu sebelum voting</div>
+</div>
+
+<div class="main">
+  <div class="status-bar">
+    <div>
+      <span class="live-dot"></span>
+      <span class="status-item"><strong id="totalVotes">0</strong> / 8 suara masuk</span>
+    </div>
+    <div class="status-item">Voter: <strong id="voterStatus">—</strong></div>
+    <button class="reset-btn" onclick="resetVotes()">🗑 Reset Semua Suara</button>
+  </div>
+
+  <div class="results-bar" id="resultsBar"></div>
+
+  <div id="villaCards"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const VOTERS = ['Erizan','Fira','Icut','Aldo','Andito','Dinta','Windie','Ino'];
+
+// Curated Unsplash photos matching each villa's character
+const VILLAS = [
+  {
+    id: 'P1',
+    name: 'Villa Amethyst KB-5',
+    location: 'Parongpong, Lembang',
+    price: 'IDR 4.916.002',
+    perPerson: 'IDR 614.500',
+    rooms: '4 Kamar Tidur · 3 Kamar Mandi',
+    capacity: '15 orang maks',
+    rating: '4.78',
+    reviews: '9 ulasan',
+    facilities: ['Private Pool','Kitchen','Wifi','Free Parking','TV','BBQ Set','Water Heater'],
+    checkin: '14:00 – 22:00',
+    checkout: 'Sebelum 12:00',
+    analysis: 'Area Lembang; kapasitas besar 15 orang; sedikit ulasan (baru)',
+    tags: [['pool','Private Pool'],['fac','BBQ Set'],['fac','Water Heater']],
+    link: 'https://www.airbnb.com/rooms/1284545598877756151',
+    img: 'Amethyst_2.png'
+  },
+  {
+    id: 'P2',
+    name: 'Villa Amethyst Dago CG-01',
+    location: 'Dago / Coblong, Bandung Kota',
+    price: 'IDR 4.221.979',
+    perPerson: 'IDR 527.747',
+    rooms: '3 Kamar Tidur · 3 Kamar Mandi',
+    capacity: '10 orang maks',
+    rating: '4.45',
+    reviews: '11 ulasan',
+    facilities: ['Private Pool','Hot Tub','Kitchen','Wifi','Free Parking'],
+    checkin: '14:00 – 22:00',
+    checkout: 'Sebelum 12:00',
+    analysis: 'Rating terendah (bottom 10%); ada hot tub; lokasi strategis Dago',
+    tags: [['pool','Private Pool'],['hot','Hot Tub'],['fac','Lokasi Dago']],
+    link: 'https://www.airbnb.com/rooms/885175192677051370',
+    img: 'Amethyst.png'
+  },
+  {
+    id: 'P3',
+    name: 'Pine Breeze W/ Backyard',
+    location: 'Sukajadi, Bandung Kota',
+    price: 'IDR 3.900.000',
+    perPerson: 'IDR 487.500',
+    rooms: '3 Kamar Tidur · 3 Kamar Mandi',
+    capacity: '9 orang maks',
+    rating: '4.98',
+    reviews: '100 ulasan',
+    facilities: ['Backyard Garden','BBQ Grill','Kitchen Lengkap','Wifi','Smart TV','Home Theatre','Soccer Table','Free Parking'],
+    checkin: '15:00 – 22:00',
+    checkout: 'Sebelum 12:00',
+    analysis: 'Guest Favorite & Superhost; 100 ulasan; tanpa pool; terbaik untuk kenyamanan & keluarga',
+    tags: [['fav','⭐ Guest Favorite'],['fav','Superhost'],['fac','Soccer Table'],['fac','Home Theatre']],
+    link: 'https://www.airbnb.com/rooms/1400529902543354123',
+    img: 'Breeze.png'
+  },
+  {
+    id: 'P4',
+    name: 'Vanda Villa Dago Pakar Resort',
+    location: 'Cimenyan / Dago Pakar, Bandung',
+    price: 'IDR 4.279.814',
+    perPerson: 'IDR 534.977',
+    rooms: '4 Kamar Tidur · 3 Kamar Mandi',
+    capacity: '15 orang maks',
+    rating: '4.62',
+    reviews: '71 ulasan',
+    facilities: ['Private Pool','Karaoke Set','2 Smart TV + 1 TV','BBQ Gas','Kitchen','Wifi','Mountain View','Free Parking (4 mobil)'],
+    checkin: '14:00',
+    checkout: 'Sebelum 12:00',
+    analysis: 'Mountain view; fasilitas karaoke; respons host 60% (lambat); bottom 10% rating',
+    tags: [['pool','Private Pool'],['fac','Karaoke'],['fac','Mountain View']],
+    link: 'https://www.airbnb.com/rooms/941815904243027966',
+    img: 'Vanda.png'
+  },
+  {
+    id: 'P5',
+    name: 'Villa Bumi Kalana',
+    location: 'Sukasari, Bandung Kota',
+    price: 'IDR 5.655.009',
+    perPerson: 'IDR 706.876',
+    rooms: '5 Kamar Tidur · 2 Kamar Mandi',
+    capacity: '10 orang maks',
+    rating: '5.0',
+    reviews: '4 ulasan',
+    facilities: ['Private Pool','Kitchen','Wifi','TV','Free Parking','dekat Paris Van Java & Lembang'],
+    checkin: '14:00',
+    checkout: 'Sebelum 12:00',
+    analysis: 'Rating sempurna 5.0 tapi hanya 4 ulasan; 5 kamar hanya 2 kamar mandi; listing baru',
+    tags: [['pool','Private Pool'],['fav','Rating 5.0'],['fac','Dekat PVJ']],
+    link: 'https://www.airbnb.com/rooms/1595640291616610032',
+    img: 'Kalana.png'
+  },
+  {
+    id: 'P6',
+    name: 'Incognito Villa @Dago Pakar',
+    location: 'Cimenyan / Dago Pakar, Bandung',
+    price: 'IDR 5.205.180',
+    perPerson: 'IDR 650.648',
+    rooms: '3 Kamar Tidur · 3.5 Kamar Mandi',
+    capacity: '12 orang maks',
+    rating: '4.95',
+    reviews: '85 ulasan',
+    facilities: ['Heated Pool','Outdoor Kitchen','BBQ','Garden View','River Access','Wifi 48Mbps','Free Parking (5 mobil)','AC per kamar'],
+    checkin: '15:00',
+    checkout: 'Sebelum 12:00',
+    analysis: 'Guest Favorite & Superhost 6 thn; heated pool; outdoor kitchen; view lembah & sungai; paling Instagramable',
+    tags: [['pool','Heated Pool'],['fav','⭐ Guest Favorite'],['fav','Superhost 6yr'],['fac','River Access']],
+    link: 'https://www.airbnb.com/rooms/661706384858380138',
+    img: 'Icognito.png'
+  }
+];
+
+const STORAGE_KEY = 'bandung_staycation_votes_v2';
+let currentVoter = null;
+
+function loadVotes() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { return {}; }
+}
+function saveVotes(v) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); } catch(e) {}
+}
+function getVoteSummary() {
+  const votes = loadVotes();
+  const summary = {};
+  VILLAS.forEach(v => summary[v.id] = { count: 0, voters: [] });
+  Object.entries(votes).forEach(([voter, villa]) => {
+    if (summary[villa]) { summary[villa].count++; summary[villa].voters.push(voter); }
+  });
+  return { votes, summary };
+}
+
+function starsHTML(r) {
+  const n = parseFloat(r);
+  let s = '';
+  for (let i = 1; i <= 5; i++) s += i <= Math.round(n) ? '★' : '☆';
+  return s;
+}
+function tagClass(t) {
+  if (t === 'pool') return 'tag-pool';
+  if (t === 'hot')  return 'tag-hot';
+  if (t === 'fav')  return 'tag-fav';
+  return 'tag-fac';
+}
+
+function renderVoterGrid() {
+  const { votes } = getVoteSummary();
+  document.getElementById('voterGrid').innerHTML = VOTERS.map(name => {
+    const hasVoted = votes[name];
+    const isActive = name === currentVoter;
+    let cls = 'voter-btn' + (isActive ? ' active' : '') + (hasVoted ? ' voted' : '');
+    return `<button class="${cls}" onclick="selectVoter('${name}')">${name}${hasVoted ? ' ✓' : ''}</button>`;
+  }).join('');
+}
+
+function renderResults() {
+  const { summary } = getVoteSummary();
+  const total = Object.values(summary).reduce((a,b) => a + b.count, 0);
+  document.getElementById('totalVotes').textContent = total;
+  const sorted = VILLAS.slice().sort((a,b) => summary[b.id].count - summary[a.id].count);
+  const maxV = Math.max(...VILLAS.map(v => summary[v.id].count), 1);
+  document.getElementById('resultsBar').innerHTML =
+    `<div class="results-title">📊 Hasil sementara (${total}/8 suara)</div>` +
+    sorted.map(v => {
+      const cnt = summary[v.id].count;
+      const w = Math.round((cnt / maxV) * 100);
+      return `<div class="results-row">
+        <div class="res-name">${v.id}: ${v.name.split(' ').slice(0,2).join(' ')}</div>
+        <div class="res-bar-wrap"><div class="res-bar" style="width:${w}%"></div></div>
+        <div class="res-val">${cnt}</div>
+      </div>`;
+    }).join('');
+}
+
+function renderCards() {
+  const { votes, summary } = getVoteSummary();
+  const maxV = Math.max(...VILLAS.map(v => summary[v.id].count), 1);
+  const topCount = Math.max(...VILLAS.map(v => summary[v.id].count));
+  const total = Object.values(summary).reduce((a,b) => a + b.count, 0);
+  const myVote = currentVoter ? votes[currentVoter] : null;
+  const sorted = VILLAS.slice().sort((a,b) => summary[b.id].count - summary[a.id].count);
+
+  document.getElementById('villaCards').innerHTML = sorted.map(villa => {
+    const s = summary[villa.id];
+    const isWinner = topCount > 0 && s.count === topCount;
+    const pct = total > 0 ? Math.round((s.count / total) * 100) : 0;
+    const barW = Math.round((s.count / maxV) * 100);
+    const isMine = myVote === villa.id;
+    const canVote = currentVoter && !myVote;
+
+    let cardCls = 'villa-card' + (isMine ? ' selected' : '') + (isWinner && topCount > 0 ? ' winner' : '');
+    const tagsHTML = villa.tags.map(([t,l]) => `<span class="tag ${tagClass(t)}">${l}</span>`).join('');
+    const facilsStr = villa.facilities.slice(0,4).join(' · ') + (villa.facilities.length > 4 ? ' +more' : '');
+    const votersHTML = s.voters.length ? s.voters.map(v => `<span class="voter-chip">${v}</span>`).join('') : '';
+
+    let btnText = isMine ? '✓ Pilihanmu' : 'Pilih Villa Ini';
+    let btnCls = 'vote-btn' + (isMine ? ' voted-state' : '');
+    let btnDisabled = (!canVote && !isMine) ? 'disabled' : '';
+    if (!currentVoter) { btnText = 'Pilih namamu dulu'; btnDisabled = 'disabled'; }
+
+    return `<div class="${cardCls}" style="margin-bottom:14px;">
+      <div class="card-img-wrap">
+        <img src="${villa.img}" alt="${villa.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&q=80'">
+        <div class="img-overlay"></div>
+        <div class="img-badge-row">
+          <span class="img-id-badge">${villa.id}</span>
+          <span class="img-winner-badge">🏆 Unggul</span>
+        </div>
+        <div class="img-bottom">
+          <div class="img-title">${villa.name}</div>
+          <div class="img-loc">📍 ${villa.location}</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-left">
+          <div class="tag-row">${tagsHTML}</div>
+          <div class="meta-row">
+            <div class="meta-item"><strong>${villa.price}</strong>Total / malam</div>
+            <div class="meta-item"><strong>${villa.perPerson}</strong>Per orang</div>
+            <div class="meta-item"><strong><span class="stars">${starsHTML(villa.rating)}</span> ${villa.rating}</strong>${villa.reviews}</div>
+            <div class="meta-item"><strong>${villa.rooms.split('·')[0].trim()}</strong>${villa.rooms.split('·')[1]?.trim()||''}</div>
+            <div class="meta-item"><strong>${villa.capacity}</strong>Kapasitas</div>
+            <div class="meta-item"><strong>Check-in</strong>${villa.checkin}</div>
+          </div>
+          <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">🏠 ${facilsStr}</div>
+          <div class="analysis">${villa.analysis}</div>
+          <div class="card-actions">
+            <button class="${btnCls}" ${btnDisabled} onclick="castVote('${villa.id}')">${btnText}</button>
+            <a class="airbnb-link" href="${villa.link}" target="_blank">↗ Lihat di Airbnb</a>
+          </div>
+          ${votersHTML ? `<div class="who-voted">${votersHTML}</div>` : ''}
+        </div>
+        <div class="card-right">
+          <div class="vote-count">${s.count}</div>
+          <div class="vote-label">suara</div>
+          <div class="vote-pct">${pct}%</div>
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:${barW}%"></div></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAll() {
+  renderVoterGrid();
+  renderResults();
+  renderCards();
+  const { votes } = getVoteSummary();
+  const myVote = currentVoter ? votes[currentVoter] : null;
+  document.getElementById('voterStatus').textContent = currentVoter
+    ? (myVote ? `${currentVoter} → sudah pilih ${myVote}` : `${currentVoter} — belum voting`)
+    : '—';
+}
+
+function selectVoter(name) { currentVoter = name; renderAll(); }
+
+function castVote(villaId) {
+  if (!currentVoter) { showToast('Pilih namamu dulu!'); return; }
+  const { votes } = getVoteSummary();
+  if (votes[currentVoter]) { showToast('Kamu sudah voting!'); return; }
+  votes[currentVoter] = villaId;
+  saveVotes(votes);
+  renderAll();
+  const villa = VILLAS.find(v => v.id === villaId);
+  showToast(`✓ ${currentVoter} memilih ${villa.name}!`);
+}
+
+function resetVotes() {
+  if (!confirm('Reset semua suara? Ini tidak bisa dibatalkan.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  renderAll();
+  showToast('Semua suara direset.');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+setInterval(renderAll, 2000);
+renderAll();
+</script>
+</body>
+</html>
