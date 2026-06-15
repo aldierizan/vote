@@ -360,6 +360,7 @@
     margin-right: 6px;
     animation: pulse 1.5s infinite;
   }
+  .live-dot.offline { background: var(--coral); animation: none; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
   .reset-btn {
@@ -420,7 +421,7 @@
 <div class="main">
   <div class="status-bar">
     <div>
-      <span class="live-dot"></span>
+      <span class="live-dot" id="liveDot"></span>
       <span class="status-item"><strong id="totalVotes">0</strong> / 8 suara masuk</span>
     </div>
     <div class="status-item">Voter: <strong id="voterStatus">—</strong></div>
@@ -436,6 +437,9 @@
 
 <script>
 const VOTERS = ['Erizan','Fira','Icut','Aldo','Andito','Dinta','Windie','Ino', 'Dea'];
+
+// 🔗 Ganti dengan URL Web App Apps Script kamu (Deploy > New deployment > Web app)
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxNvJUq3nffBq25k9jzeViuZdSX7aVmip9KQd9--sKZW3tMJ8tjP-2nQMleTB5d8OU/exec';
 
 // Curated Unsplash photos matching each villa's character
 const VILLAS = [
@@ -549,23 +553,47 @@ const VILLAS = [
   }
 ];
 
-const STORAGE_KEY = 'bandung_staycation_votes_v2';
-let currentVoter = null;
+let votesCache = {};
+let currentVoter = localStorage.getItem('staycation_voter_name') || null;
+let isLoading = true;
+let isSaving = false;
 
-function loadVotes() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { return {}; }
+// === Data layer: Google Sheets via Apps Script Web App ===
+async function fetchVotes() {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, { cache: 'no-store' });
+    const data = await res.json();
+    votesCache = data.votes || {};
+    setOnline(true);
+    return true;
+  } catch (err) {
+    console.error('Gagal mengambil data voting:', err);
+    setOnline(false);
+    return false;
+  }
 }
-function saveVotes(v) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(v)); } catch(e) {}
+
+async function postAction(action, payload = {}) {
+  const res = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action, ...payload })
+  });
+  return res.json();
 }
+
+function setOnline(ok) {
+  const dot = document.getElementById('liveDot');
+  if (dot) dot.classList.toggle('offline', !ok);
+}
+
 function getVoteSummary() {
-  const votes = loadVotes();
   const summary = {};
   VILLAS.forEach(v => summary[v.id] = { count: 0, voters: [] });
-  Object.entries(votes).forEach(([voter, villa]) => {
+  Object.entries(votesCache).forEach(([voter, villa]) => {
     if (summary[villa]) { summary[villa].count++; summary[villa].voters.push(voter); }
   });
-  return { votes, summary };
+  return { votes: votesCache, summary };
 }
 
 function starsHTML(r) {
@@ -592,6 +620,11 @@ function renderVoterGrid() {
 }
 
 function renderResults() {
+  if (isLoading) {
+    document.getElementById('resultsBar').innerHTML =
+      `<div class="results-title">⏳ Memuat data voting dari Google Sheet...</div>`;
+    return;
+  }
   const { summary } = getVoteSummary();
   const total = Object.values(summary).reduce((a,b) => a + b.count, 0);
   document.getElementById('totalVotes').textContent = total;
@@ -611,6 +644,10 @@ function renderResults() {
 }
 
 function renderCards() {
+  if (isLoading) {
+    document.getElementById('villaCards').innerHTML = '';
+    return;
+  }
   const { votes, summary } = getVoteSummary();
   const maxV = Math.max(...VILLAS.map(v => summary[v.id].count), 1);
   const topCount = Math.max(...VILLAS.map(v => summary[v.id].count));
@@ -635,6 +672,7 @@ function renderCards() {
     let btnCls = 'vote-btn' + (isMine ? ' voted-state' : '');
     let btnDisabled = (!canVote && !isMine) ? 'disabled' : '';
     if (!currentVoter) { btnText = 'Pilih namamu dulu'; btnDisabled = 'disabled'; }
+    if (isSaving) { btnDisabled = 'disabled'; }
 
     return `<div class="${cardCls}" style="margin-bottom:14px;">
       <div class="card-img-wrap">
@@ -690,24 +728,54 @@ function renderAll() {
     : '—';
 }
 
-function selectVoter(name) { currentVoter = name; renderAll(); }
-
-function castVote(villaId) {
-  if (!currentVoter) { showToast('Pilih namamu dulu!'); return; }
-  const { votes } = getVoteSummary();
-  if (votes[currentVoter]) { showToast('Kamu sudah voting!'); return; }
-  votes[currentVoter] = villaId;
-  saveVotes(votes);
+function selectVoter(name) {
+  currentVoter = name;
+  localStorage.setItem('staycation_voter_name', name);
   renderAll();
-  const villa = VILLAS.find(v => v.id === villaId);
-  showToast(`✓ ${currentVoter} memilih ${villa.name}!`);
 }
 
-function resetVotes() {
-  if (!confirm('Reset semua suara? Ini tidak bisa dibatalkan.')) return;
-  localStorage.removeItem(STORAGE_KEY);
+async function castVote(villaId) {
+  if (isLoading) { showToast('Tunggu, data masih dimuat...'); return; }
+  if (!currentVoter) { showToast('Pilih namamu dulu!'); return; }
+  if (votesCache[currentVoter]) { showToast('Kamu sudah voting!'); return; }
+  if (isSaving) return;
+  isSaving = true;
+
+  // optimistic update biar terasa instan
+  votesCache[currentVoter] = villaId;
   renderAll();
-  showToast('Semua suara direset.');
+  const villa = VILLAS.find(v => v.id === villaId);
+  showToast(`Menyimpan pilihan ${currentVoter}...`);
+
+  try {
+    const result = await postAction('vote', { voter: currentVoter, villaId });
+    if (!result.success) {
+      await fetchVotes();
+      isSaving = false;
+      renderAll();
+      showToast(result.message === 'already_voted' ? 'Kamu sudah voting sebelumnya!' : 'Gagal menyimpan, coba lagi.');
+      return;
+    }
+    showToast(`✓ Tersimpan! ${currentVoter} memilih ${villa.name}`);
+  } catch (err) {
+    delete votesCache[currentVoter];
+    showToast('Gagal menyimpan — cek koneksi internet.');
+  } finally {
+    isSaving = false;
+    renderAll();
+  }
+}
+
+async function resetVotes() {
+  if (!confirm('Reset semua suara di Google Sheet? Tindakan ini tidak bisa dibatalkan.')) return;
+  try {
+    await postAction('reset');
+    votesCache = {};
+    renderAll();
+    showToast('Semua suara direset.');
+  } catch (err) {
+    showToast('Gagal reset — cek koneksi internet.');
+  }
 }
 
 function showToast(msg) {
@@ -717,10 +785,21 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-setInterval(renderAll, 2000);
-renderAll();
+// === Init & live sync ===
+async function init() {
+  renderAll(); // tampilkan loading state
+  await fetchVotes();
+  isLoading = false;
+  renderAll();
+}
+
+setInterval(async () => {
+  if (isSaving) return;
+  const ok = await fetchVotes();
+  if (ok) renderAll();
+}, 5000);
+
+init();
 </script>
 </body>
 </html>
-
-<!-- test -->
