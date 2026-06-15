@@ -631,7 +631,7 @@ function renderResults() {
   const sorted = VILLAS.slice().sort((a,b) => summary[b.id].count - summary[a.id].count);
   const maxV = Math.max(...VILLAS.map(v => summary[v.id].count), 1);
   document.getElementById('resultsBar').innerHTML =
-    `<div class="results-title">📊 Hasil sementara (${total}/8 suara)</div>` +
+    `<div class="results-title">📊 Hasil sementara (${total}/9 suara)</div>` +
     sorted.map(v => {
       const cnt = summary[v.id].count;
       const w = Math.round((cnt / maxV) * 100);
